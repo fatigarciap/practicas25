@@ -17,6 +17,5 @@ def get_estancias_uci_detalle_preview():
     return read_gbq(query, project_id=PROJECT_ID)
 
 def get_estancias_uci_cultivos():
-    with open("analysis/sql/estancias_uci_cultivos.sql", "r") as file:
-        query = file.read()
+    query = load_sql("estancias_uci_cultivos.sql")
     return read_gbq(query, project_id=PROJECT_ID)
