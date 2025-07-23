@@ -59,6 +59,15 @@ def get_estancias_uci_monoinfeccion_filtrada():
     query = load_sql("estancias_uci_monoinfeccion_filtrada.sql")
     return read_gbq(query, project_id=PROJECT_ID)
 
+def get_estancias_uci_monoinfeccion_filtrada_comorb():
+    query = load_sql("estancias_uci_monoinfeccion_filtrada_comorb.sql")
+    return read_gbq(query, project_id=PROJECT_ID)
+
+def get_estancias_uci_monoinfeccion_con_tratamiento_previo():
+    query = load_sql("estancias_uci_monoinfeccion_con_tratamiento_previo.sql")
+    return read_gbq(query, project_id=PROJECT_ID)
+
+
 # ⚠️ Puedes seguir agregando más funciones así:
 # def get_nombre_funcion():
 #     query = load_sql("nombre_del_sql.sql")
