@@ -71,6 +71,11 @@ def get_conteo_estancias_uci_monoinfeccion():
     query = load_sql("conteo_estancias_uci_monoinfeccion.sql")
     return read_gbq(query, project_id=PROJECT_ID)
 
+def get_estancias_uci_48h_tratamiento():
+    query = load_sql("estancias_uci_48h_tratamiento.sql")
+    return read_gbq(query, project_id=PROJECT_ID)
+
+
 
 # ⚠️ Puedes seguir agregando más funciones así:
 # def get_nombre_funcion():
