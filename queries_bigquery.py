@@ -100,7 +100,7 @@ def get_b4_improvementsflags():
     query = load_sql("b4_improvementsflags.sql")
     return read_gbq(query, project_id=PROJECT_ID)
 def get_longitudinal_cohort():
-    query = load_sql("longitudinal_cohort.sql")
+    query = load_sql("pipeline_final/longitudinal_cohort.sql")
     return read_gbq(query, project_id=PROJECT_ID)
 
 # ⚠️ Puedes seguir agregando más funciones así:
