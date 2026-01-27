@@ -85,6 +85,10 @@ def get_estancias_uci_metrica_clinica():
     query = load_sql("estancias_uci_metrica_clinica.sql")
     return read_gbq(query, project_id=PROJECT_ID)
 
+def get_b0_cohorte():
+    query = load_sql("b0_cohorte.sql")
+    return read_gbq(query, project_id=PROJECT_ID)
+
 def get_b1_base_windows():
     query = load_sql("b1_base_windows.sql")
     return read_gbq(query, project_id=PROJECT_ID)
