@@ -1,115 +1,128 @@
--- ============================================
--- 🧩 BLOQUE 1: BASE Y VENTANAS DE 24h
--- ============================================
-
 CREATE OR REPLACE TABLE `strange-math-456415-c3.mimic_analysis.base_windows` AS
-WITH
--- ------------------------------------------------
--- 1️⃣ Identificar inicio de antibiótico (T₀)
--- ------------------------------------------------
-antibiotic_start AS (
+WITH cohort AS (
+  -- Cohorte a nivel estancia (tu tabla actual)
   SELECT
-    p.subject_id,
-    p.hadm_id,
-    MIN(p.starttime) AS abx_starttime
-  FROM `physionet-data.mimiciv_3_1_hosp.prescriptions` p
-  WHERE LOWER(p.drug) LIKE '%cef%'    -- cefalosporinas
-     OR LOWER(p.drug) LIKE '%piper%'  -- piperacilina/tazobactam
-     OR LOWER(p.drug) LIKE '%mero%'   -- meropenem
-     OR LOWER(p.drug) LIKE '%van%'    -- vancomicina
-     OR LOWER(p.drug) LIKE '%amox%'   -- amoxicilina
-  GROUP BY p.subject_id, p.hadm_id
+    stay_id,
+    hadm_id,
+    index_charttime
+  FROM `strange-math-456415-c3.mimic_analysis.bloque_0b_stay`
 ),
 
--- ------------------------------------------------
--- 2️⃣ Contexto de estancia en UCI + mortalidad
--- ------------------------------------------------
 icu_context AS (
+  -- Contexto UCI + muerte
   SELECT
-    icu.subject_id,
-    icu.hadm_id,
-    icu.stay_id,
-    icu.intime,
-    icu.outtime,
-    adm.deathtime
-  FROM `physionet-data.mimiciv_3_1_icu.icustays` icu
-  LEFT JOIN `physionet-data.mimiciv_3_1_hosp.admissions` adm
-    USING (hadm_id)
+    c.stay_id,
+    c.hadm_id,
+    c.index_charttime,
+    i.intime,
+    i.outtime,
+    a.deathtime
+  FROM cohort c
+  JOIN `physionet-data.mimiciv_3_1_icu.icustays` i
+    ON c.stay_id = i.stay_id
+  LEFT JOIN `physionet-data.mimiciv_3_1_hosp.admissions` a
+    ON c.hadm_id = a.hadm_id
 ),
 
--- ------------------------------------------------
--- 3️⃣ Unir antibióticos con estancia en UCI
--- ------------------------------------------------
-joined AS (
+abx_start AS (
+  -- 1) Primer inicio de antibiótico dentro de la estancia UCI
+  -- 2) (Opcional) lo acotamos a +/- 48h del index_charttime para que sea coherente con "evento índice"
   SELECT
-    i.subject_id,
-    i.hadm_id,
     i.stay_id,
-    CAST(i.intime AS TIMESTAMP) AS icu_in,
-    CAST(i.outtime AS TIMESTAMP) AS icu_out,
-    CAST(a.abx_starttime AS TIMESTAMP) AS abx_starttime,
-    CAST(i.deathtime AS TIMESTAMP) AS death_time
+    i.hadm_id,
+    MIN(CAST(p.starttime AS TIMESTAMP)) AS t0
   FROM icu_context i
-  JOIN antibiotic_start a
-    USING (subject_id, hadm_id)
-  WHERE a.abx_starttime BETWEEN i.intime AND i.outtime
+  JOIN `physionet-data.mimiciv_3_1_hosp.prescriptions` p
+    ON i.hadm_id = p.hadm_id
+  WHERE
+    p.starttime IS NOT NULL
+    -- antibióticos: usamos LIKE para no perder por nombres no exactos
+    AND (
+      LOWER(p.drug) LIKE '%ceftriaxone%' OR
+      LOWER(p.drug) LIKE '%cefepime%' OR
+      LOWER(p.drug) LIKE '%ceftazidime%' OR
+      LOWER(p.drug) LIKE '%meropenem%' OR
+      LOWER(p.drug) LIKE '%imipenem%' OR
+      LOWER(p.drug) LIKE '%trimethoprim%' OR
+      LOWER(p.drug) LIKE '%sulfamethoxazole%' OR
+      LOWER(p.drug) LIKE '%linezolid%' OR
+      LOWER(p.drug) LIKE '%daptomycin%' OR
+      LOWER(p.drug) LIKE '%oxacillin%' OR
+      LOWER(p.drug) LIKE '%vancomycin%'
+    )
+    -- t0 debe caer durante la UCI
+    AND CAST(p.starttime AS TIMESTAMP) BETWEEN CAST(i.intime AS TIMESTAMP) AND CAST(i.outtime AS TIMESTAMP)
+    -- acotar alrededor del evento índice (si quieres quitar esto, borra estas 2 líneas)
+    AND CAST(p.starttime AS TIMESTAMP) BETWEEN
+      TIMESTAMP_SUB(CAST(i.index_charttime AS TIMESTAMP), INTERVAL 48 HOUR)
+      AND
+      TIMESTAMP_ADD(CAST(i.index_charttime AS TIMESTAMP), INTERVAL 48 HOUR)
+  GROUP BY i.stay_id, i.hadm_id
 ),
 
--- ------------------------------------------------
--- 4️⃣ Definir rango de seguimiento (máx 30 días)
--- ------------------------------------------------
-window_limits AS (
+icu_with_t0 AS (
+  -- Nos quedamos solo con stays donde hemos encontrado inicio de antibiótico
   SELECT
-    subject_id,
-    hadm_id,
-    stay_id,
-    abx_starttime AS t0,
-    LEAST(icu_out, TIMESTAMP_ADD(abx_starttime, INTERVAL 30 DAY)) AS followup_end,  -- máx 30 días o alta
-    TIMESTAMP_DIFF(LEAST(icu_out, TIMESTAMP_ADD(abx_starttime, INTERVAL 30 DAY)), abx_starttime, HOUR) AS total_hours
-  FROM joined
+    i.stay_id,
+    i.hadm_id,
+    a.t0,
+    CAST(i.intime AS TIMESTAMP) AS intime,
+    CAST(i.outtime AS TIMESTAMP) AS outtime,
+    CAST(i.deathtime AS TIMESTAMP) AS deathtime
+  FROM icu_context i
+  JOIN abx_start a
+    USING (stay_id, hadm_id)
 ),
 
--- ------------------------------------------------
--- 5️⃣ Expandir ventanas de 24h desde T₀
--- ------------------------------------------------
-window_index AS (
+followup AS (
+  -- Fin del seguimiento: alta UCI / muerte / 30 días desde t0
   SELECT
-    subject_id,
-    hadm_id,
     stay_id,
+    hadm_id,
+    t0,
+    LEAST(
+      outtime,
+      IFNULL(deathtime, outtime),
+      TIMESTAMP_ADD(t0, INTERVAL 30 DAY)
+    ) AS followup_end
+  FROM icu_with_t0
+),
+
+expanded_days AS (
+  -- Índices diarios desde t0
+  SELECT
+    stay_id,
+    hadm_id,
     t0,
     followup_end,
-    total_hours,
-    GENERATE_ARRAY(0, CAST(total_hours / 24 AS INT64)) AS day_indices
-  FROM window_limits
+    GENERATE_ARRAY(
+      0,
+      CAST(TIMESTAMP_DIFF(followup_end, t0, HOUR) / 24 AS INT64)
+    ) AS day_indices
+  FROM followup
 ),
 
 windows AS (
+  -- Ventanas de 24h
   SELECT
-    subject_id,
-    hadm_id,
     stay_id,
+    hadm_id,
     t0,
     followup_end,
     day_idx,
     TIMESTAMP_ADD(t0, INTERVAL day_idx * 24 HOUR) AS window_start,
     TIMESTAMP_ADD(t0, INTERVAL (day_idx + 1) * 24 HOUR) AS window_end
-  FROM window_index,
-       UNNEST(day_indices) AS day_idx
+  FROM expanded_days, UNNEST(day_indices) AS day_idx
   WHERE TIMESTAMP_ADD(t0, INTERVAL day_idx * 24 HOUR) < followup_end
 )
 
--- ------------------------------------------------
--- 🧾 Tabla base: una fila por paciente y ventana de 24h
--- ------------------------------------------------
 SELECT
-  subject_id,
-  hadm_id,
   stay_id,
+  hadm_id,
   t0,
   day_idx,
   window_start,
   window_end,
   followup_end
 FROM windows
-ORDER BY subject_id, stay_id, day_idx;
+ORDER BY stay_id, day_idx;

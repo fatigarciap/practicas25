@@ -97,12 +97,18 @@ def get_b2_dailyfeatures():
     query = load_sql("b2_dailyfeatures.sql")
     return read_gbq(query, project_id=PROJECT_ID)
 
+def get_b2_subnew_foci_flag():
+    query = load_sql("b2_subnew_foci_flag.sql")
+    return read_gbq(query, project_id=PROJECT_ID)
+
 def get_b3_clinicaldomains():
     query = load_sql("b3_clinicaldomains.sql")
     return read_gbq(query, project_id=PROJECT_ID)
+
 def get_b4_improvementsflags():
     query = load_sql("b4_improvementsflags.sql")
     return read_gbq(query, project_id=PROJECT_ID)
+
 def get_longitudinal_cohort():
     query = load_sql("pipeline_final/longitudinal_cohort.sql")
     return read_gbq(query, project_id=PROJECT_ID)
