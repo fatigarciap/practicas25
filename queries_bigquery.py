@@ -1,119 +1,173 @@
 import os
 from pandas_gbq import read_gbq
 
-# ID de tu proyecto en Google Cloud
 PROJECT_ID = "practicas-456510"
 
-def load_sql(file_name):
+
+def load_sql(relative_path):
     """
-    Busca un archivo SQL dentro de cualquier subcarpeta de 'analysis'.
-    Funciona tanto en Colab como en VS Code.
+    Carga archivos SQL desde:
+    analysis/pipeline_final/
     """
     try:
-        # Si estamos ejecutando como script (VS Code)
         base_path = os.path.dirname(__file__)
     except NameError:
-        # Si estamos en Colab (__file__ no está definido)
         base_path = os.getcwd()
 
-    analysis_path = os.path.join(base_path, "analysis")
+    full_path = os.path.join(
+        base_path,
+        "analysis",
+        "pipeline_final",
+        relative_path
+    )
 
-    # Recorrer todas las subcarpetas dentro de 'analysis'
-    for root, dirs, files in os.walk(analysis_path):
-        if file_name in files:
-            sql_path = os.path.join(root, file_name)
-            with open(sql_path, "r") as file:
-                return file.read()
+    if not os.path.exists(full_path):
+        raise FileNotFoundError(f"Archivo SQL no encontrado: {full_path}")
 
-    # Si no se encontró el archivo
-    raise FileNotFoundError(f"Archivo SQL no encontrado en ninguna subcarpeta de 'analysis': {file_name}")
+    with open(full_path, "r", encoding="utf-8") as file:
+        return file.read()
+
+
+def run_sql(relative_path):
+    query = load_sql(relative_path)
+    return read_gbq(query, project_id=PROJECT_ID)
 
 
 # ======================
-# FUNCIONES DISPONIBLES
+# BLOQUE 0 — COHORTE
 # ======================
 
-def get_total_estancias_uci():
-    query = load_sql("estancias_uci.sql")
-    return read_gbq(query, project_id=PROJECT_ID)
+def get_00_01_episode_candidates_clean():
+    return run_sql("00_cohort/00_01_episode_candidates_clean.sql")
 
-def get_estancias_uci_detalle_preview():
-    query = load_sql("estancias_uci_detalle.sql")
-    return read_gbq(query, project_id=PROJECT_ID)
 
-def get_estancias_uci_cultivos():
-    query = load_sql("estancias_uci_cultivos.sql")
-    return read_gbq(query, project_id=PROJECT_ID)
+def get_00_02_antibiogram_detail_clean():
+    return run_sql("00_cohort/00_02_antibiogram_detail_clean.sql")
 
-def get_recuento_estancias_uci():
-    query = load_sql("recuento_estancias_uci.sql")
-    return read_gbq(query, project_id=PROJECT_ID)
 
-def get_estancias_uci_microevents():
-    query = load_sql("estancias_uci_microevents.sql")
-    return read_gbq(query, project_id=PROJECT_ID)
+def get_00_03_index_stay_clean():
+    return run_sql("00_cohort/00_03_index_stay_clean.sql")
 
-def get_estancias_uci_monoinfeccion():
-    query = load_sql("estancias_uci_monoinfeccion.sql")
-    return read_gbq(query, project_id=PROJECT_ID)
 
-def get_estancias_uci_monoinfeccion_filtrada():
-    query = load_sql("estancias_uci_monoinfeccion_filtrada.sql")
-    return read_gbq(query, project_id=PROJECT_ID)
+# ======================
+# BLOQUE 1 — T0 Y ANTIBIÓTICOS
+# ======================
 
-def get_estancias_uci_monoinfeccion_filtrada_comorb():
-    query = load_sql("estancias_uci_monoinfeccion_filtrada_comorb.sql")
-    return read_gbq(query, project_id=PROJECT_ID)
+def get_01_01_abx_spectrum_map_clean():
+    return run_sql("01_antibiotics_t0/01_01_abx_spectrum_map_clean.sql")
 
-def get_estancias_uci_monoinfeccion_con_tratamiento_previo():
-    query = load_sql("estancias_uci_monoinfeccion_con_tratamiento_previo.sql")
-    return read_gbq(query, project_id=PROJECT_ID)
 
-def get_conteo_estancias_uci_monoinfeccion():
-    query = load_sql("conteo_estancias_uci_monoinfeccion.sql")
-    return read_gbq(query, project_id=PROJECT_ID)
+def get_01_02_t0_true():
+    return run_sql("01_antibiotics_t0/01_02_t0_true.sql")
 
-def get_estancias_uci_48h_tratamiento():
-    query = load_sql("estancias_uci_48h_tratamiento.sql")
-    return read_gbq(query, project_id=PROJECT_ID)
 
-def get_estancias_uci_bloques_monomicrobianos():
-    query = load_sql("estancias_uci_bloques_monomicrobianos.sql")
-    return read_gbq(query, project_id=PROJECT_ID)
+def get_01_03_baseline_regimen_detail_clean():
+    return run_sql("01_antibiotics_t0/01_03_baseline_regimen_detail_clean.sql")
 
-def get_estancias_uci_metrica_clinica():
-    query = load_sql("estancias_uci_metrica_clinica.sql")
-    return read_gbq(query, project_id=PROJECT_ID)
 
-def get_b0_cohorte():
-    query = load_sql("b0_cohorte.sql")
-    return read_gbq(query, project_id=PROJECT_ID)
+def get_01_04_baseline_regimen_summary_clean():
+    return run_sql("01_antibiotics_t0/01_04_baseline_regimen_summary_clean.sql")
 
-def get_b1_base_windows():
-    query = load_sql("b1_base_windows.sql")
-    return read_gbq(query, project_id=PROJECT_ID)
 
-def get_b2_dailyfeatures():
-    query = load_sql("b2_dailyfeatures.sql")
-    return read_gbq(query, project_id=PROJECT_ID)
+def get_01_05_baseline_regimen_multihot_clean():
+    return run_sql("01_antibiotics_t0/01_05_baseline_regimen_multihot_clean.sql")
 
-def get_b2_subnew_foci_flag():
-    query = load_sql("b2_subnew_foci_flag.sql")
-    return read_gbq(query, project_id=PROJECT_ID)
 
-def get_b3_clinicaldomains():
-    query = load_sql("b3_clinicaldomains.sql")
-    return read_gbq(query, project_id=PROJECT_ID)
+# ======================
+# BLOQUE 2 — VENTANAS
+# ======================
 
-def get_b4_improvementsflags():
-    query = load_sql("b4_improvementsflags.sql")
-    return read_gbq(query, project_id=PROJECT_ID)
+def get_02_01_base_windows_clean():
+    return run_sql("02_windows/02_01_base_windows_clean.sql")
 
-def get_longitudinal_cohort():
-    query = load_sql("pipeline_final/longitudinal_cohort.sql")
-    return read_gbq(query, project_id=PROJECT_ID)
 
-# ⚠️ Puedes seguir agregando más funciones así:
-# def get_nombre_funcion():
-#     query = load_sql("nombre_del_sql.sql")
-#     return read_gbq(query, project_id=PROJECT_ID)
+# ======================
+# BLOQUE 3 — EVENTOS
+# ======================
+
+def get_03_01_radiology_worsening_events_clean():
+    return run_sql("03_events/03_01_radiology_worsening_events_clean.sql")
+
+
+def get_03_02_radiology_flag_clean():
+    return run_sql("03_events/03_02_radiology_flag_clean.sql")
+
+
+def get_03_03_new_foci_events_clean():
+    return run_sql("03_events/03_03_new_foci_events_clean.sql")
+
+
+def get_03_04_new_foci_flag_clean():
+    return run_sql("03_events/03_04_new_foci_flag_clean.sql")
+
+
+# ======================
+# BLOQUE 4 — VARIABLES DIARIAS
+# ======================
+
+def get_04_01_daily_features_clean():
+    return run_sql("04_daily_features/04_01_daily_features_clean.sql")
+
+
+# ======================
+# BLOQUE 5 — OUTCOME
+# ======================
+
+def get_05_01_clinical_domains_sci_clean():
+    return run_sql("05_outcome/05_01_clinical_domains_sci_clean.sql")
+
+
+def get_05_02_improvement_flags_clean():
+    return run_sql("05_outcome/05_02_improvement_flags_clean.sql")
+
+
+# ======================
+# BLOQUE 6 — TABLA FINAL
+# ======================
+
+def get_06_01_longitudinal_cohort_model_ready():
+    return run_sql("06_final_table/06_01_longitudinal_cohort_model_ready.sql")
+
+
+# ======================
+# EJECUCIÓN COMPLETA DEL PIPELINE
+# ======================
+
+def run_full_pipeline():
+    """
+    Ejecuta todo el pipeline en orden.
+    Úsalo cuando todos los SQL sean CREATE OR REPLACE TABLE.
+    """
+
+    print("Ejecutando BLOQUE 0 — Cohorte")
+    get_00_01_episode_candidates_clean()
+    get_00_02_antibiogram_detail_clean()
+    get_00_03_index_stay_clean()
+
+    print("Ejecutando BLOQUE 1 — T0 y régimen antibiótico")
+    get_01_01_abx_spectrum_map_clean()
+    get_01_02_t0_true()
+    get_01_03_baseline_regimen_detail_clean()
+    get_01_04_baseline_regimen_summary_clean()
+    get_01_05_baseline_regimen_multihot_clean()
+
+    print("Ejecutando BLOQUE 2 — Ventanas")
+    get_02_01_base_windows_clean()
+
+    print("Ejecutando BLOQUE 3 — Eventos")
+    get_03_01_radiology_worsening_events_clean()
+    get_03_02_radiology_flag_clean()
+    get_03_03_new_foci_events_clean()
+    get_03_04_new_foci_flag_clean()
+
+    print("Ejecutando BLOQUE 4 — Variables clínicas diarias")
+    get_04_01_daily_features_clean()
+
+    print("Ejecutando BLOQUE 5 — Outcome")
+    get_05_01_clinical_domains_sci_clean()
+    get_05_02_improvement_flags_clean()
+
+    print("Ejecutando BLOQUE 6 — Tabla final")
+    get_06_01_longitudinal_cohort_model_ready()
+
+    print("Pipeline ejecutado correctamente.")
