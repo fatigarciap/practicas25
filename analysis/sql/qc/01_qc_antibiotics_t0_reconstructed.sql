@@ -1,0 +1,16 @@
+-- reconstructed_from_existing_tables
+--
+-- PENDIENTE:
+-- QC de antibioticos y t0:
+--   - estancias con t0 identificado
+--   - distribucion de true_t0 respecto a index_charttime
+--   - numero de antibioticos activos en t0
+--   - cobertura del mapa `abx_spectrum_map_clean`
+--
+-- Tablas sugeridas:
+--   - mimic_analysis.bloque_t0_true
+--   - mimic_analysis.baseline_regimen_detail_clean
+--   - mimic_analysis.baseline_regimen_summary_clean
+--   - mimic_analysis.baseline_regimen_multihot_clean
+--
+-- Este placeholder no contiene SQL ejecutable hasta definir metricas esperadas.

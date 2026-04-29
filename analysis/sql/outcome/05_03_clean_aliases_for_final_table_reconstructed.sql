@@ -1,0 +1,21 @@
+-- reconstructed_from_existing_tables
+--
+-- PENDIENTE:
+-- Resolver la incoherencia entre las tablas creadas con sufijo `_clean`
+-- y las dependencias sin `_clean` usadas por la tabla final.
+--
+-- Tablas creadas por scripts existentes:
+--   - mimic_analysis.clinical_domains_sci_clean
+--   - mimic_analysis.improvement_flags_clean
+--
+-- Tablas referenciadas por `06_01_longitudinal_cohort_model_ready.sql`:
+--   - mimic_analysis.clinical_domains_sci
+--   - mimic_analysis.improvement_flags
+--
+-- Opcion recomendada:
+-- modificar el script final para usar las tablas `_clean`.
+--
+-- Opcion alternativa:
+-- crear aliases materializados o views sin sufijo, explicitamente documentados.
+--
+-- Este placeholder no ejecuta cambios para evitar crear versiones paralelas no validadas.

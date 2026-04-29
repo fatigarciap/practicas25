@@ -1,0 +1,14 @@
+-- reconstructed_from_existing_tables
+--
+-- PENDIENTE:
+-- QC de ventanas y variables diarias:
+--   - numero de dias por stay_id
+--   - ventanas con window_start < window_end
+--   - missingness por variable clinica
+--   - cobertura de signos vitales y laboratorios por day_idx
+--
+-- Tablas sugeridas:
+--   - mimic_analysis.bloque_1_base_windows_clean
+--   - mimic_analysis.daily_features_clean
+--
+-- Este placeholder no contiene SQL ejecutable hasta definir metricas esperadas.

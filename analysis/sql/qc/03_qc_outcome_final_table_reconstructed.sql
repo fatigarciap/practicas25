@@ -1,0 +1,15 @@
+-- reconstructed_from_existing_tables
+--
+-- PENDIENTE:
+-- QC de outcome y tabla final:
+--   - distribucion de dominios clinicos
+--   - frecuencia de improved_today y sustained_improvement
+--   - duplicados por stay_id, day_idx
+--   - integridad de joins en la tabla final
+--
+-- Tablas sugeridas:
+--   - mimic_analysis.clinical_domains_sci_clean
+--   - mimic_analysis.improvement_flags_clean
+--   - mimic_analysis.longitudinal_cohort_model_ready
+--
+-- Este placeholder no contiene SQL ejecutable hasta definir metricas esperadas.

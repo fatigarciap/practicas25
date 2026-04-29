@@ -1,0 +1,16 @@
+-- reconstructed_from_existing_tables
+--
+-- PENDIENTE:
+-- Consolidar reglas de exclusion de administraciones no sistemicas o no terapeuticas
+-- observadas en `01_01_t0_true.sql`, por ejemplo:
+--   - oral
+--   - enema
+--   - flush
+--   - dwell
+--
+-- Motivo:
+-- `01_01_t0_true.sql` aplica estas exclusiones al detectar t0, pero
+-- `01_03_baseline_regimen_detail_clean.sql` no replica explicitamente las mismas reglas.
+--
+-- Este placeholder no debe ejecutarse hasta definir tabla destino, dependencias
+-- y criterios metodologicos finales.

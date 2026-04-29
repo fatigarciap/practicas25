@@ -1,0 +1,14 @@
+-- reconstructed_from_existing_tables
+--
+-- PENDIENTE:
+-- QC de cohorte:
+--   - numero de subject_id, hadm_id, stay_id
+--   - numero de microevent_id
+--   - unicidad esperada por stay_id tras `bloque_0b_index_stay_clean`
+--   - distribucion de specimen_type y organism_name
+--
+-- Tablas sugeridas:
+--   - mimic_analysis.bloque_0_episode_candidates_clean
+--   - mimic_analysis.bloque_0b_index_stay_clean
+--
+-- Este placeholder no contiene SQL ejecutable hasta definir metricas esperadas.
