@@ -1,5 +1,4 @@
-vale pues ahora, en funnción a este script:
-"import os
+import os
 from pandas_gbq import read_gbq
 
 # ID de tu proyecto en Google Cloud
