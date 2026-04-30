@@ -113,6 +113,10 @@ def get_longitudinal_cohort():
     query = load_sql("pipeline_final/longitudinal_cohort.sql")
     return read_gbq(query, project_id=PROJECT_ID)
 
+def get_checks_iniciales_calidad():
+    query = load_sql("qc_checks_iniciales_calidad.sql")
+    return read_gbq(query, project_id=PROJECT_ID)
+
 # ==========================
 # PIPELINE FINAL - COHORTE
 # ==========================
