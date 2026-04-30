@@ -214,14 +214,8 @@ def get_06_01_longitudinal_cohort_model_ready():
 # ======================
 
 def get_checks_iniciales_calidad():
-    """
-    Ejecuta el resumen inicial de calidad de la tabla longitudinal final.
-
-    Ejemplo en Colab:
-        df = get_checks_iniciales_calidad()
-        display(df)
-    """
-    return run_sql_file("qc_checks_iniciales_calidad.sql")
+    query = load_sql("qc_checks_iniciales_calidad.sql")
+    return read_gbq(query, project_id=PROJECT_ID)
 
 
 def get_qc_00_list_tables():
